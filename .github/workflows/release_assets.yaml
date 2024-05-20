@@ -23,6 +23,7 @@ jobs:
           context: './plugins'
           dockerfile: './plugins/docker/Dockerfile'
           image_name: ${{ github.repository_owner}}/traction-plugins-acapy
+          platform: linux/amd64, linux/arm64
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
@@ -38,6 +39,7 @@ jobs:
         with:
           context: './services/tenant-ui'
           image_name: ${{ github.repository_owner}}/traction-tenant-ui
+          platform: linux/amd64, linux/arm64
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
@@ -54,6 +56,7 @@ jobs:
           context: './plugins'
           dockerfile: './plugins/docker/Dockerfile.tenant-proxy'
           image_name: ${{ github.repository_owner}}/traction-tenant-proxy
+          platform: linux/amd64, linux/arm64
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
