@@ -56,7 +56,7 @@ jobs:
           context: './plugins'
           dockerfile: './plugins/docker/Dockerfile.tenant-proxy'
           image_name: ${{ github.repository_owner}}/traction-tenant-proxy
-          platform: linux/amd64, linux/arm64
+          platforms: linux/amd64, linux/arm64
           registry: ghcr.io
           registry_username: ${{ github.repository_owner}}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
