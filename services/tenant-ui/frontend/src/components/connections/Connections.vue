@@ -78,6 +78,9 @@
         :header="$t('connect.table.theirLabel')"
         :show-filter-match-modes="false"
       >
+        <template #body="{ data }">
+          {{ getMetadata(data.connection_id) }}</template
+        >
         <template #filter="{ filterModel, filterCallback }">
           <InputText
             v-model="filterModel.value"
@@ -171,6 +174,7 @@ import RowExpandData from '../common/RowExpandData.vue';
 import StatusChip from '../common/StatusChip.vue';
 import { TABLE_OPT, API_PATH } from '@/helpers/constants';
 import { formatDateLong } from '@/helpers';
+import useGetItem from '@/composables/useGetItem';
 
 const confirm = useConfirm();
 const toast = useToast();
@@ -227,6 +231,29 @@ const deleteDisabled = (connectionAlias: string) => {
   );
 };
 
+// Get Metadata
+const metadataCache = ref<any>({});
+const fetchMetadata = async (connection_id: any) => {
+  if (!metadataCache.value[connection_id]) {
+    const { item, fetchItem } = useGetItem(
+      API_PATH.CONNECTIONS_METADATA(connection_id)
+    );
+    await fetchItem();
+    if (item.value?.results.student_id) {
+      metadataCache.value[connection_id] =
+        `${item.value.results.first_name} ${item.value.results.last_name} - ${item.value.results.student_id}`;
+    } else {
+      metadataCache.value[connection_id] = ' ';
+    }
+  }
+  return metadataCache.value[connection_id];
+};
+const getMetadata = (connection_id: string) => {
+  if (!metadataCache.value[connection_id]) {
+    fetchMetadata(connection_id);
+  }
+  return metadataCache.value[connection_id] || 'Loading...';
+};
 // The formatted table row
 const formattedConnections: Ref<any[]> = computed(() =>
   filteredConnections.value.map((conn) => ({

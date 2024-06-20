@@ -1,5 +1,5 @@
 import { createTestingPinia } from '@pinia/testing';
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import { describe, expect, test, vi } from 'vitest';
@@ -36,6 +36,9 @@ describe('Connections', () => {
   test('formattedConnections maps connections and they render correctly', async () => {
     const wrapper = mountConnections();
     const expectedTexts = ['', 'test.alias', 'BC Wallet', 'active'];
+
+    // Wait for all promises to resolve
+    await flushPromises();
 
     // td is an expected text or valid date
     wrapper.findAll('tbody td').forEach((td) => {

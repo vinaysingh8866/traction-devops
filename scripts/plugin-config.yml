@@ -5,8 +5,8 @@ multitenant_provider:
   errors:
     on_unneeded_wallet_key: false
   token_expiry:
-    units: days
-    amount: 1
+    units: months
+    amount: 3
 
 traction_innkeeper:
   innkeeper_wallet:
@@ -15,16 +15,17 @@ traction_innkeeper:
     wallet_key: change-me
     print_key: true
     print_token: true
-    connect_to_endorser: [
-      {
-        "endorser_alias": "bcovrin-test-endorser",
-        "ledger_id": "bcovrin-test",
-      },
-      {
-        "endorser_alias": "bcovrin-test-endorser-1",
-        "ledger_id": "bcovrin-test-1",
-      }
-    ]
+    connect_to_endorser:
+      [
+        {
+          "endorser_alias": "bcovrin-test-endorser",
+          "ledger_id": "bcovrin-test",
+        },
+        {
+          "endorser_alias": "bcovrin-test-endorser-1",
+          "ledger_id": "bcovrin-test-1",
+        },
+      ]
     create_public_did: ["bcovrin-test", "bcovrin-test-1"]
   reservation:
     auto_approve: true

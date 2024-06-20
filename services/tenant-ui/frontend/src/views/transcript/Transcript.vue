@@ -1,103 +1,136 @@
 <template>
-  <div class="transcript-container">
-    <MainCardContent :title="$t('transcript.transcript')">
-      <Accordion :multiple="true">
-        <AccordionTab header="Transcript Form">
-          <form
-            class="transcript-form"
-            @submit.prevent="handleSubmit(!v$.$invalid)"
+  <MainCardContent :title="$t('transcript.transcript')">
+    <Panel class="mb-5" header="Transcript Form">
+      <form
+        class="transcript-form"
+        @submit.prevent="handleSubmit(!v$.$invalid)"
+      >
+        <!-- Connection -->
+        <div class="field mt-5">
+          <label
+            for="selectedConnection"
+            :class="{
+              'p-error': v$.selectedConnection.$invalid && submitted,
+            }"
+            >{{ $t('common.connectionName') }}
+            <ProgressSpinner v-if="connectionLoading" />
+          </label>
+          <div class="flex align-items-center">
+            <AutoComplete
+              id="selectedConnection"
+              v-model="v$.selectedConnection.$model"
+              class="w-full"
+              :disabled="connectionLoading"
+              :suggestions="connectionsList"
+              :dropdown="true"
+              option-label="label"
+              force-selection
+              @complete="searchConnections($event)"
+            />
+            <span v-if="metaDataLoading" class="ml-2">
+              <i class="pi pi-spin pi-spinner" style="font-size: 1.2em" />
+            </span>
+          </div>
+
+          <small
+            v-if="v$.selectedConnection.$invalid && submitted"
+            class="p-error"
+            >{{ v$.selectedConnection.required.$message }}</small
           >
-            <!-- Connection -->
-            <div class="field mt-5">
-              <label
-                for="selectedConnection"
-                :class="{
-                  'p-error': v$.selectedConnection.$invalid && submitted,
-                }"
-                >{{ $t('common.connectionName') }}
-                <ProgressSpinner v-if="connectionLoading" />
-              </label>
-              <div class="flex align-items-center">
-                <AutoComplete
-                  id="selectedConnection"
-                  v-model="v$.selectedConnection.$model"
-                  class="w-full"
-                  :disabled="connectionLoading"
-                  :suggestions="connectionsList"
-                  :dropdown="true"
-                  option-label="label"
-                  force-selection
-                  @complete="searchConnections($event)"
-                />
-                <span v-if="metaDataLoading" class="ml-2">
-                  <i class="pi pi-spin pi-spinner" style="font-size: 1.2em" />
-                </span>
-              </div>
-
-              <small
-                v-if="v$.selectedConnection.$invalid && submitted"
-                class="p-error"
-                >{{ v$.selectedConnection.required.$message }}</small
-              >
-              <div v-if="!isMetaData" class="field">
-                <span class="p-error"> {{ $t('transcript.noMetaData') }}</span>
-                <label for="studentID" class="mt-2">{{
-                  $t('transcript.studentID')
-                }}</label>
-                <InputText
-                  id="studentID"
-                  v-model="v$.studentID.$model"
-                  required
-                  @input="transcriptContent = ''"
-                />
-                <Button
-                  :label="$t('transcript.findTranscript')"
-                  icon="pi pi-search"
-                  class="ml-2"
-                  :disabled="!v$.studentID.$model || transcriptLoading"
-                  @click="getTranscript(v$.studentID.$model)"
-                />
-                <span v-if="transcriptLoading" class="ml-2">
-                  <i class="pi pi-spin pi-spinner" style="font-size: 1.2em" />
-                </span>
-                <div v-if="transcriptContent === false" class="p-error">
-                  {{ $t('transcript.noTranscript') }}
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                label="Send Transcript"
-                icon="pi pi-check"
-                class="mt-5"
-                :disabled="
-                  connectionLoading || transcriptLoading || !transcriptContent
-                "
-                :loading="connectionLoading"
-              />
+          <div v-if="!isMetaData" class="field">
+            <span class="p-error"> {{ $t('transcript.noMetaData') }}</span>
+            <label for="studentID" class="mt-2">{{
+              $t('transcript.studentID')
+            }}</label>
+            <InputText
+              id="studentID"
+              v-model="v$.studentID.$model"
+              required
+              @input="transcriptContent = ''"
+            />
+            <Button
+              :label="$t('transcript.findTranscript')"
+              icon="pi pi-search"
+              class="ml-2"
+              :disabled="!v$.studentID.$model || transcriptLoading"
+              @click="getTranscript(v$.studentID.$model)"
+            />
+            <span v-if="transcriptLoading" class="ml-2">
+              <i class="pi pi-spin pi-spinner" style="font-size: 1.2em" />
+            </span>
+            <div v-if="transcriptContent === false" class="p-error">
+              {{ $t('transcript.noTranscript') }}
             </div>
-          </form>
-        </AccordionTab>
-      </Accordion>
-    </MainCardContent>
-  </div>
+          </div>
+          <div
+            v-if="transcriptContent && !transcriptLoading"
+            class="pt-4 transcriptContent"
+          >
+            <Card>
+              <template #content>
+                <div>
+                  <strong>{{ `${$t('transcript.studentID')}: ` }}</strong>
+                  {{ metadataMap?.results?.student_id }}
+                </div>
+                <div>
+                  <strong>{{ `${$t('transcript.firstName')}: ` }}</strong>
+                  {{ metadataMap?.results?.first_name }}
+                </div>
+                <div>
+                  <strong>{{ `${$t('transcript.lastName')}: ` }}</strong
+                  >{{ metadataMap?.results?.last_name }}
+                </div>
+                <hr />
+                <div
+                  v-for="(course, index) in transcriptContent?.courseTranscript"
+                  :key="index"
+                >
+                  <div v-for="(value, key) in course" :key="key">
+                    <strong>{{ `${updateKey(key)}:` }}</strong>
+                    {{ value }}
+                  </div>
+                  <hr
+                    v-if="
+                      index !== transcriptContent?.courseTranscript?.length - 1
+                    "
+                  />
+                </div>
+              </template>
+            </Card>
+          </div>
+
+          <Button
+            type="submit"
+            label="Send Transcript"
+            icon="pi pi-check"
+            class="mt-5"
+            :disabled="
+              connectionLoading || transcriptLoading || !transcriptContent
+            "
+            :loading="connectionLoading"
+          />
+        </div>
+      </form>
+    </Panel>
+  </MainCardContent>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useStudentStore, useConnectionStore, useIssuerStore } from '@/store';
-import Accordion from 'primevue/accordion';
-import AccordionTab from 'primevue/accordiontab';
+import Panel from 'primevue/panel';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import AutoComplete from 'primevue/autocomplete';
+import Card from 'primevue/card';
 import MainCardContent from '@/components/layout/mainCard/MainCardContent.vue';
 import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import useGetItem from '@/composables/useGetItem';
 import { API_PATH } from '@/helpers/constants';
 import { useToast } from 'vue-toastification';
+import { useSisApi } from '@/store/sisApi';
 
 const { getStudentInfo, idLookup } = useStudentStore();
 
@@ -147,7 +180,7 @@ const fetchMetadata = async (connection_id: string) => {
     API_PATH.CONNECTIONS_METADATA(connection_id)
   );
   await fetchItem();
-  if (item.value?.results.student_id) {
+  if (item.value?.results?.student_id) {
     metadataMap.value = item.value;
     await getTranscript(metadataMap.value.results.student_id);
     await createPayload();
@@ -166,6 +199,10 @@ const getTranscript = async (student_id: string) => {
   (await getStudentInfo(student_id))
     ? (transcriptContent.value = await getStudentInfo(student_id))
     : (transcriptContent.value = false);
+  // There is a transcript but it's empty
+  if (transcriptContent.value?.courseTranscript?.length === 0) {
+    transcriptContent.value = false;
+  }
   if (isMetaData.value === false && transcriptContent.value) {
     const studentInfo = await idLookup(student_id);
     if (studentInfo) {
@@ -184,24 +221,28 @@ const getTranscript = async (student_id: string) => {
 
 // Payload
 const payload = ref();
+const sisApi = useSisApi();
+const credentialDefinitionId = ref();
 // Create payload
 const createPayload = async () => {
+  const GPA =
+    transcriptContent.value?.studentCumulativeTranscript[0]?.cumulativeGradePointAverage?.toString() ??
+    '';
   payload.value = {
     auto_issue: true,
     auto_remove: false,
     connection_id: formFields.selectedConnection.value,
-    // TODO: Replace hardcoded credential ID with a dynamic value
-    cred_def_id: 'EYkeHjvuGtyyfMmhp2Qh9f:3:CL:99:usStateCollegeTrascript',
+    cred_def_id: credentialDefinitionId.value,
     credential_preview: {
       '@type': 'issue-credential/1.0/credential-preview',
       attributes: [
         {
           name: 'Last',
-          value: metadataMap.value.results.last_name,
+          value: metadataMap.value?.results?.last_name,
         },
         {
           name: 'First',
-          value: metadataMap.value.results.first_name,
+          value: metadataMap.value?.results?.first_name,
         },
         {
           name: 'Expiration',
@@ -209,7 +250,7 @@ const createPayload = async () => {
         },
         {
           name: 'StudentID',
-          value: metadataMap.value.results.student_id,
+          value: metadataMap.value?.results?.student_id,
         },
         {
           name: 'Middle',
@@ -217,7 +258,7 @@ const createPayload = async () => {
         },
         {
           name: 'Transcript',
-          value: JSON.stringify(transcriptContent.value),
+          value: JSON.stringify(transcriptContent.value?.courseTranscript),
         },
         {
           name: 'School',
@@ -225,7 +266,7 @@ const createPayload = async () => {
         },
         {
           name: 'GPA',
-          value: '',
+          value: GPA,
         },
       ],
     },
@@ -261,6 +302,12 @@ const handleSubmit = async (isFormValid: boolean) => {
   }
 };
 
+// Convert the key to title case and insert space before capital letters after lowercase letters
+const updateKey = (input: any) =>
+  input
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/^./, (str: string) => str.toUpperCase());
+
 watch(
   () => formFields.selectedConnection,
   () => {
@@ -280,14 +327,13 @@ onMounted(async () => {
   connectionStore.listConnections().catch((err) => {
     console.error(`Failure: ${err}`);
   });
+  credentialDefinitionId.value = (
+    await sisApi.getHttp(`metadata/transcript-credential-definition-id`)
+  ).data?.transcriptCredentialDefinitionId;
 });
 </script>
 
 <style scoped>
-.transcript-container {
-  padding: 20px;
-}
-
 .transcript-form {
   max-width: 650px;
 }
@@ -322,6 +368,13 @@ label {
 
 .button-submit {
   margin-left: auto;
+}
+
+:deep(.transcriptContent .vjs-tree-node) {
+  line-height: 14px !important;
+}
+:deep(.transcriptContent .vjs-tree-node) {
+  font-size: 12px !important;
 }
 
 @media (max-width: 768px) {

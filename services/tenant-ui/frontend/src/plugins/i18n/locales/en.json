@@ -23,6 +23,8 @@
     "submit": "Submit",
     "clear": "Clear",
     "findTranscript": "Find Transcript",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "details": "Transcript Details",
     "id": "ID:",
     "attributes": "Attributes:",
@@ -251,7 +253,8 @@
       "search": "Search Invitations"
     },
     "message": {
-      "messageConnection": "Chat with {0}"
+      "messageConnection": "Chat with {0}",
+      "chatConnection": "Chat with {0}"
     },
     "table": {
       "createdAt": "Created At",
@@ -352,7 +355,8 @@
     "createMessage": "Create a Message",
     "disclaimer": "Note: This table contains the message storage records. For per-connection conversations, see the 'Connections' page.",
     "messageContent": "Message Content",
-    "messages": "Messages"
+    "messages": "Messages",
+    "messageDetails": "Message Details"
   },
   "profile": {
     "config": "Config:",

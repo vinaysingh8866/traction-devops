@@ -1,127 +1,117 @@
 <template>
-  <div class="onboarding-container">
-    <MainCardContent :title="$t('onboarding.onboarding')">
-      <Accordion :multiple="true">
-        <AccordionTab header="Onboarding Form">
-          <form class="onboarding-form" @submit.prevent="submitForm">
-            <div class="form-group student-id-group">
-              <label for="studentId">{{ $t('onboarding.studentId') }}</label>
-              <div class="input-and-button">
-                <InputText id="studentId" v-model="studentId" required />
-                <Button
-                  :label="$t('onboarding.idLookup')"
-                  icon="pi pi-search"
-                  class="button-id-lookup"
-                  :disabled="!studentId || loading"
-                  @click="handleIdLookUp"
-                />
-              </div>
-              <div v-if="loading" class="center-content">
-                <i class="pi pi-spin pi-spinner" style="font-size: 2em"></i>
-                <p>{{ $t('onboarding.fetching') }}</p>
-              </div>
-              <div v-else-if="error" class="center-content">
-                <p class="text-error">{{ errMessage }}</p>
-              </div>
-              <div v-else-if="studentFullName" class="center-content">
-                <p class="text-success">{{ $t('onboarding.found') }}</p>
-              </div>
-              <div v-else-if="loadingQRCode" class="center-content">
-                <i class="pi pi-spin pi-spinner" style="font-size: 2em"></i>
-                <p>{{ $t('onboarding.loadingQRCode') }}</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="fullName">{{ $t('onboarding.fullName') }}</label>
-              <InputText id="fullName" v-model="fullName" required />
-            </div>
-            <div class="form-actions">
+  <MainCardContent :title="$t('onboarding.onboarding')">
+    <Panel class="mb-5" header="Onboarding Form">
+      <form class="onboarding-form" @submit.prevent="submitForm">
+        <div class="form-group student-id-group">
+          <label for="studentId">{{ $t('onboarding.studentId') }}</label>
+          <div class="input-and-button">
+            <InputText id="studentId" v-model="studentId" required />
+            <Button
+              :label="$t('onboarding.idLookup')"
+              icon="pi pi-search"
+              class="button-id-lookup"
+              :disabled="!studentId || loading"
+              @click="handleIdLookUp"
+            />
+          </div>
+          <div v-if="loading" class="center-content">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2em"></i>
+            <p>{{ $t('onboarding.fetching') }}</p>
+          </div>
+          <div v-else-if="error" class="center-content">
+            <p class="text-error">{{ errMessage }}</p>
+          </div>
+          <div v-else-if="studentFullName" class="center-content">
+            <p class="text-success">{{ $t('onboarding.found') }}</p>
+          </div>
+          <div v-else-if="loadingQRCode" class="center-content">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2em"></i>
+            <p>{{ $t('onboarding.loadingQRCode') }}</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fullName">{{ $t('onboarding.fullName') }}</label>
+          <InputText id="fullName" v-model="fullName" required />
+        </div>
+        <div class="form-actions">
+          <Button
+            :label="$t('onboarding.clear')"
+            icon="pi pi-times"
+            class="button-clear"
+            :disabled="!studentId && !fullName && !error && !studentFullName"
+            @click="clearForm"
+          />
+
+          <Button
+            :label="$t('onboarding.submit')"
+            icon="pi pi-check"
+            class="button-submit"
+            :disabled="!studentId || !fullName || !studentFullName"
+            type="submit"
+          />
+        </div>
+      </form>
+      <Dialog
+        v-model:visible="showModal"
+        :modal="true"
+        :style="{ width: '50vw' }"
+        header=""
+        @hide="clearForm"
+      >
+        <div
+          v-if="!qrCodeScanned && !contactAdded && !credentialIssued"
+          class="qr-code-display"
+        >
+          <p>{{ $t('onboarding.scanQRCODE') }}</p>
+          <QRCode :qr-content="invitation_url" />
+        </div>
+        <div
+          v-else-if="qrCodeScanned && !contactAdded"
+          class="left-aligned-content"
+        >
+          <i class="pi pi-spin pi-spinner" style="font-size: 1em"></i>
+          <p>{{ $t('onboarding.qrScanned') }}</p>
+        </div>
+        <div v-else-if="contactAdded" class="left-aligned-content">
+          <div class="status">
+            <i class="pi pi-check" style="font-size: 1em; color: green"></i>
+            <span style="font-size: 1em; color: green; margin-left: 0.5em">{{
+              $t('onboarding.contactAdded')
+            }}</span>
+          </div>
+          <div v-if="credentialIssued" class="status">
+            <i class="pi pi-check" style="font-size: 1em; color: green"></i>
+            <span style="font-size: 1em; color: green; margin-left: 0.5em">{{
+              $t('onboarding.credentialOffered')
+            }}</span>
+            <div class="button-container">
               <Button
-                :label="$t('onboarding.clear')"
-                icon="pi pi-times"
-                class="button-clear"
-                :disabled="
-                  !studentId && !fullName && !error && !studentFullName
-                "
+                :label="$t('onboarding.return')"
+                icon="pi pi-refresh"
+                class="button-return"
                 @click="clearForm"
               />
-
-              <Button
-                :label="$t('onboarding.submit')"
-                icon="pi pi-check"
-                class="button-submit"
-                :disabled="!studentId || !fullName || !studentFullName"
-                type="submit"
-              />
             </div>
-          </form>
-
-          <Dialog
-            v-model:visible="showModal"
-            :modal="true"
-            :style="{ width: '50vw' }"
-            header=""
-            @hide="clearForm"
-          >
-            <div
-              v-if="!qrCodeScanned && !contactAdded && !credentialIssued"
-              class="qr-code-display"
-            >
-              <p>{{ $t('onboarding.scanQRCODE') }}</p>
-              <QRCode :qr-content="invitation_url" />
-            </div>
-            <div
-              v-else-if="qrCodeScanned && !contactAdded"
-              class="left-aligned-content"
-            >
-              <i class="pi pi-spin pi-spinner" style="font-size: 1em"></i>
-              <p>{{ $t('onboarding.qrScanned') }}</p>
-            </div>
-            <div v-else-if="contactAdded" class="left-aligned-content">
-              <div class="status">
-                <i class="pi pi-check" style="font-size: 1em; color: green"></i>
-                <span
-                  style="font-size: 1em; color: green; margin-left: 0.5em"
-                  >{{ $t('onboarding.contactAdded') }}</span
-                >
-              </div>
-              <div v-if="credentialIssued" class="status">
-                <i class="pi pi-check" style="font-size: 1em; color: green"></i>
-                <span
-                  style="font-size: 1em; color: green; margin-left: 0.5em"
-                  >{{ $t('onboarding.credentialOffered') }}</span
-                >
-                <div class="button-container">
-                  <Button
-                    :label="$t('onboarding.return')"
-                    icon="pi pi-refresh"
-                    class="button-return"
-                    @click="clearForm"
-                  />
-                </div>
-              </div>
-              <div v-else class="status">
-                <i class="pi pi-spin pi-spinner" style="font-size: 1.5em"></i>
-                <p style="font-size: 1.5em">
-                  {{ $t('onboarding.issuingStudentID') }}
-                </p>
-              </div>
-            </div>
-          </Dialog>
-        </AccordionTab>
-      </Accordion>
-    </MainCardContent>
-  </div>
+          </div>
+          <div v-else class="status">
+            <i class="pi pi-spin pi-spinner" style="font-size: 1.5em"></i>
+            <p style="font-size: 1.5em">
+              {{ $t('onboarding.issuingStudentID') }}
+            </p>
+          </div>
+        </div>
+      </Dialog>
+    </Panel>
+  </MainCardContent>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { io } from 'socket.io-client';
 import { useI18n } from 'vue-i18n';
-import Accordion from 'primevue/accordion';
-import AccordionTab from 'primevue/accordiontab';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import Panel from 'primevue/panel';
 import MainCardContent from '@/components/layout/mainCard/MainCardContent.vue';
 import QRCode from '@/components/common/QRCode.vue';
 import Dialog from 'primevue/dialog';
