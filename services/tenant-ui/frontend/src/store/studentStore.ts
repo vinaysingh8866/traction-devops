@@ -1,17 +1,25 @@
 import { defineStore } from 'pinia';
 import { API_PATH } from '@/helpers/constants';
 import { useSisApi } from './sisApi';
+import axios from 'axios';
 
 export const useStudentStore = defineStore('student', () => {
   const sisApi = useSisApi();
 
-  async function idLookup(studentNumber: string) {
+  async function idLookup(studentNumber: string, webHookUrl?: string) {
     let studentData = null;
+    let response = null;
 
     try {
-      const response = await sisApi.getHttp(
-        `${API_PATH.SIS_STUDENT_ID}?studentNumber=${studentNumber}`
-      );
+      if (webHookUrl) {
+        response = await axios.get(
+          `${webHookUrl}${API_PATH.SIS_STUDENT_ID}?studentNumber=${studentNumber}`
+        );
+      } else {
+        response = await sisApi.getHttp(
+          `${API_PATH.SIS_STUDENT_ID}?studentNumber=${studentNumber}`
+        );
+      }
       studentData = response.data;
     } catch (err) {
       console.log('Error displayed on studentStore', err);
@@ -19,13 +27,21 @@ export const useStudentStore = defineStore('student', () => {
     return studentData;
   }
 
-  async function getStudentInfo(studentNumber: string) {
+  async function getStudentInfo(studentNumber: string, webHookUrl?: string) {
     let studentInfo = null;
+    let response = null;
 
     try {
-      const response = await sisApi.getHttp(
-        `${API_PATH.SIS_STUDENT_TRANSCRIPT}?studentNumber=${studentNumber}`
-      );
+      if (webHookUrl) {
+        response = await axios.get(
+          `${webHookUrl}${API_PATH.SIS_STUDENT_TRANSCRIPT}?studentNumber=${studentNumber}`
+        );
+      } else {
+        response = await sisApi.getHttp(
+          `${API_PATH.SIS_STUDENT_TRANSCRIPT}?studentNumber=${studentNumber}`
+        );
+      }
+
       const { studentCumulativeTranscript, courseTranscript } = response.data;
       studentInfo = {
         studentCumulativeTranscript,

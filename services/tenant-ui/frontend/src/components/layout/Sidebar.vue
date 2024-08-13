@@ -56,6 +56,11 @@ const items = ref([
       },
     ],
   },
+  {
+    label: t('bulkIssue.bulkIssue'),
+    icon: 'pi pi-fw pi-angle-double-up',
+    route: '/bulkIssue',
+  },
 
   {
     label: t('issue.issuance'),

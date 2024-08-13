@@ -38,7 +38,9 @@
         "messageLevel": "UX_INFO_BANNER_MESSAGE_LEVEL",
         "showMessage": "UX_INFO_BANNER_SHOW_MESSAGE"
       }
-    }
+    },
+    "walletIdOnboardingTabletCapeFear": "WALLET_ID_ONBOARDING_TABLET_CAPEFEAR",
+    "walletKeyOnboardingTabletCapeFear": "WALLET_KEY_ONBOARDING_TABLET_CAPEFEAR"
   },
   "image": {
     "buildtime": "IMAGE_BUILDTIME",

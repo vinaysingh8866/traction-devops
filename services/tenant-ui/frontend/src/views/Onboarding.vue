@@ -123,6 +123,7 @@ import {
 } from '@/store';
 import { useToast } from 'vue-toastification';
 import { storeToRefs } from 'pinia';
+import { useTenantStore } from '@/store';
 
 const { t } = useI18n();
 const studentId = ref('');
@@ -144,6 +145,7 @@ const qrCodeScanned = ref(false);
 const contactAdded = ref(false);
 const credentialIssued = ref(false);
 const credentialOffered = ref(false);
+const webHookUrl = ref(null);
 
 let socket: any;
 
@@ -174,25 +176,6 @@ const initializeSocket = () => {
       contactAdded.value = true;
       console.log(`Student ${data.details.alias} successfully added!`);
       console.log('Issuing student ID....');
-      try {
-        const payload = {
-          auto_issue: true,
-          auto_remove: false,
-          connection_id: `${data.details.connection_id}`,
-          cred_def_id: `${data.cred_def_id}`,
-          credential_preview: {
-            '@type': 'issue-credential/1.0/credential-preview',
-            attributes: JSON.parse(JSON.stringify(data.attributes)),
-          },
-          trace: false,
-        };
-
-        await issuerStore.offerCredential(payload);
-        credentialOffered.value = true;
-        toast.info('Credential Offer Sent');
-      } catch (error) {
-        toast.error(`Failure: ${error}`);
-      }
     }
 
     if (data.details?.state === 'offer_sent') {
@@ -206,7 +189,20 @@ const initializeSocket = () => {
 
 onMounted(() => {
   initializeSocket();
+  loadTenantSettings();
 });
+const { tenantWallet } = storeToRefs(useTenantStore());
+const tenantStore = useTenantStore();
+const loadTenantSettings = async () => {
+  Promise.all([tenantStore.getTenantSubWallet()])
+    .then(() => {
+      webHookUrl.value = tenantWallet.value.settings['wallet.webhook_urls'][0];
+    })
+    .catch((err: any) => {
+      console.error(err);
+      toast.error(`Failure: ${err}`);
+    });
+};
 
 onUnmounted(() => {
   if (socket) {
@@ -250,7 +246,11 @@ const handleIdLookUp = async () => {
   studentFullName.value = false;
   loading.value = true;
   try {
-    response = await idLookup(studentId.value);
+    if (webHookUrl.value) {
+      response = await idLookup(studentId.value, webHookUrl.value);
+    } else {
+      response = await idLookup(studentId.value);
+    }
     if (response && response.studentIdCred) {
       console.log('response', response);
       fullName.value = response.studentIdCred.fullName;
